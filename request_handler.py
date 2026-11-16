@@ -130,7 +130,6 @@ class HandleRequests(BaseHTTPRequestHandler):
     # Here's a method on the class that overrides the parent's method.
     # It handles any POST request.
     def do_POST(self):
-        self._set_headers(201)
         content_len = int(self.headers.get('content-length', 0))
         post_body = self.rfile.read(content_len)
 
@@ -140,47 +139,21 @@ class HandleRequests(BaseHTTPRequestHandler):
         # Parse the URL
         (resource, id) = self.parse_url(self.path)
 
-        # Initialize new animal
-        new_animal = None
-        new_location = None
-        new_employee = None
-        new_customer = None                        
-
-        # Add a new animal to the list. Don't worry about
-        # the orange squiggle, you'll define the create_animal
-        # function next.
         if resource == "animals":
-            new_animal = create_animal(post_body)
+            response = create_animal(post_body)
+        elif resource == "locations":
+            response = create_location(post_body)
+        elif resource == "employees":
+            response = save_employee(post_body)
+        elif resource == "customers":
+            response = create_customer(post_body)
+        else:
+            self._set_headers(404)
+            return
 
-        # Encode the new animal and send in response
-        self.wfile.write(f"{new_animal}".encode())
-
-        # Add a new location to the list. Don't worry about
-        # the orange squiggle, you'll define the create_location
-        # function next.
-        if resource == "locations":
-            new_location = create_location(post_body)
-
-        # Encode the new location and send in response
-        self.wfile.write(f"{new_location}".encode())
-
-        # Add a new employee to the list. Don't worry about
-        # the orange squiggle, you'll define the save_employee
-        # function next.
-        if resource == "employees":
-            new_employee = save_employee(post_body)
-
-        # Encode the new employee and send in response
-        self.wfile.write(f"{new_employee}".encode())
-
-        # Add a new customer to the list. Don't worry about
-        # the orange squiggle, you'll define the create_customer
-        # function next.
-        if resource == "customers":
-            new_customer = create_customer(post_body)
-
-        # Encode the new customer and send in response
-        self.wfile.write(f"{new_customer}".encode())
+        self._set_headers(201)
+        response_body = response if isinstance(response, str) else json.dumps(response)
+        self.wfile.write(response_body.encode())
 
     def do_DELETE(self):
         # Set a 204 response code
