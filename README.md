@@ -1,1 +1,1 @@
-# python-server
+# kennel-server
